@@ -121,12 +121,13 @@
 		 duplicates (reduce create_duplicate_map {} duplicate_list)
 		 _ (println "Starting the batch processing of email at ", (get-time))
 		 _ (Thread/sleep 100)
-		 result (reduce curate_emails {:coll [] :seen [] :mean 0 :duplicates duplicates :N 0 :processed 0 :last_hundred []} all_records)]
+		 result (reduce curate_emails {:coll [] :seen #{} :mean 0 :duplicates duplicates :N 0 :processed 0 :last_hundred []} all_records)]
 	(println "Done Processing at ", (get-time))
 	(println "##############")
-	(println "Total emails rpocessed: ", (:processed result))
+	(println "Total emails processed: ", (:processed result))
 	(println "Total emails added to the batch: ", (:N result))
 	(println "Number of duplicate emails in this batch was: ", (count duplicates))
+	(println "Number of duplicate emails added to this batch: ", (count (:seen result)))
 	(println "Final mean: ", (:mean result))
 	(println "##############")))
 
