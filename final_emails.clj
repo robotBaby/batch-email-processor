@@ -70,6 +70,7 @@
 		(print "Last 100 mean: ", last_hundred_mean, "Current mean: ", new-mean, "\n"))))
 
 (defn check-duplicates
+	"Checks for duplicates when scanning the bacth of emails"
 	[{coll :coll seen :seen duplicates :duplicates N :N processed :processed :as old} 
 		{email-address :email-address spam-score :spam-score :as record}
 		new-mean
@@ -85,6 +86,8 @@
 		{:coll (conj coll record) :mean new-mean :seen seen :duplicates duplicates :N (inc N) :processed (inc processed):last_hundred new_last_hundred}))
 
 (defn curate_emails
+	"Function called in a reduce to check for conditions for adding an email to a batch or not.
+	TODO: Do preprocessing and batch processing together."
 	[{coll :coll mean :mean seen :seen duplicates :duplicates N :N processed :processed last_hundred :last_hundred :as old} {email-address :email-address spam-score :spam-score :as record}]
 	(let [new-mean (float (/ (+ spam-score (* mean N)) (inc N)))]
 		  ;; The multiple if statements are meant to 
@@ -102,6 +105,8 @@
 
 
 (defn process_email
+	"Entry function tha processes the batch and output the emails to send in order.
+	And print statistics"
 	[N]
 	(let [_ (println "Asking Randy for the emails at ", (get-time))
 		 all_records (ask_Randy N)
@@ -124,7 +129,7 @@
 
 
 (deftest check_lazy
-	(is (instance? clojure.lang.LazySeq (ask_Randy 10000000))))
+	(is (instance? clojure.lang.LazySeq (ask_Randy 10000000)) "Checking lazy"))
 
 (deftest check_duplicates
 	(let [all_records [{:email-address "ab.com" :spam-score 0.5}, 
@@ -134,7 +139,7 @@
 		duplicate_list (dups-with-function all_records :email-address)
 		duplicates (reduce create_duplicate_map {} duplicate_list)
 		result (reduce curate_emails {:coll [] :seen #{} :mean 0 :duplicates duplicates :N 0 :processed 0 :last_hundred [] :last_hundred_mean 0} all_records)]
-	(is (= duplicates {"ab.com" 0.03}))
-	(is (= (:seen result) #{"ab.com"}))
-	(is (= (:coll result) [{:email-address "ab.com" :spam-score 0.03}, {:email-address "cd.com" :spam-score 0.01}]))))
+	(is (= duplicates {"ab.com" 0.03}) "Checks for suplicate" )
+	(is (= (:seen result) #{"ab.com"}) "Checks how the seen bahaves")
+	(is (= (:coll result) [{:email-address "ab.com" :spam-score 0.03}, {:email-address "cd.com" :spam-score 0.01}]) "Checks the overall outcome")))
 
